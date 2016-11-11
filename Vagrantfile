@@ -44,6 +44,8 @@ Vagrant.configure(VAGRANT_API_VERSION) do |config|
 
     config.vm.provider "virtualbox" do |vb|
         vb.memory = guest_memory
+        # Uncomment option below to avoid issues with VirtualBox on Windows 10
+        # vb.gui=true
     end
 
     config.vm.synced_folder '.', '/vagrant', disabled: true
@@ -75,22 +77,22 @@ Vagrant.configure(VAGRANT_API_VERSION) do |config|
         s.inline = "sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
     end
 
-    config.vm.provision "upgrade_environment_recurring", type: "shell", run: "always" do |s|
+    config.vm.provision "upgrade_environment_recurring", type: "shell", run: "always", keep_color: true do |s|
         s.path = "scripts/provision/upgrade_environment_recurring.sh"
         s.args = shell_script_args
     end
 
-    config.vm.provision "configure_environment", type: "shell" do |s|
+    config.vm.provision "configure_environment", type: "shell", keep_color: true do |s|
         s.path = "scripts/provision/configure_environment.sh"
         s.args = shell_script_args
     end
 
-    config.vm.provision "configure_environment_recurring", type: "shell", run: "always" do |s|
+    config.vm.provision "configure_environment_recurring", type: "shell", run: "always", keep_color: true do |s|
         s.path = "scripts/provision/configure_environment_recurring.sh"
         s.args = shell_script_args
     end
 
-    config.vm.provision "export_env_variables_recurring", type: "shell", run: "always" do |s|
+    config.vm.provision "export_env_variables_recurring", type: "shell", run: "always", keep_color: true do |s|
         s.path = "scripts/provision/export_env_variables_recurring.sh"
         s.args = shell_script_args
     end

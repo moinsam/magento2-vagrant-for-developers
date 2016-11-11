@@ -27,6 +27,7 @@
    * [Switch between PHP 5.6 and 7.0](#switch-between-php-56-and-70)
    * [Activating Varnish](#activating-varnish)
    * [Activating ElasticSearch](#activating-elasticsearch)
+   * [Redis for caching](#redis-for-caching)
    * [Reset environment](#reset-environment)
  * [FAQ](#faq)
 
@@ -44,7 +45,7 @@ It is easy to [install multiple Magento instances](#multiple-magento-instances) 
 
  1. Adds some missing software on the host
  1. Configures all software necessary for Magento 2 using [custom Ubuntu vagrant box](https://atlas.hashicorp.com/paliarush/boxes/magento2.ubuntu) (Apache 2.4, PHP 7.0 (or 5.6), MySQL 5.6, Git, Composer, XDebug, Rabbit MQ, Varnish)
- 1. Installs Magento 2
+ 1. Installs Magento 2 from Git repositories or Composer packages (can be configured via `checkout_source_from` option in [etc/config.yaml](etc/config.yaml.dist))
  1. Configures PHP Storm project (partially at the moment)
 
 ## How to install
@@ -82,11 +83,11 @@ Software listed below should be available in [PATH](https://en.wikipedia.org/wik
    git clone git@github.com:paliarush/magento2-vagrant-for-developers.git vagrant-magento
    ```
 
- 1. Optionally, if you use private repositories on GitHub or download packages from Magento Marketplace
+ 1. Optionally, if you use private repositories on GitHub or download packages from Magento Marketplace using Composer
 
    - copy [etc/composer/auth.json.dist](etc/composer/auth.json.dist) to `etc/composer/auth.json`
    - specify your GitHub token by adding `"github.com": "your-github-token"` to `github-oauth` section for GitHub authorization
-   - add Magento Marketplace keys for Marketplace authorization
+   - add Magento Marketplace keys for Marketplace authorization to `repo.magento.com` section
 
  1. Optionally, copy [etc/config.yaml.dist](etc/config.yaml.dist) as `etc/config.yaml` and make necessary customizations
 
@@ -208,6 +209,8 @@ To debug a CLI script:
 
 To debug Magento Setup script, go to [Magento installation script](scripts/guest/m-reinstall) and find `php ${install_cmd}`. Follow steps above for any CLI script
 
+:information_source: In addition to XDebug support, [config.yaml](etc/config.yaml.dist) has several options in `debug` section which allow storefront and admin UI debugging. Plus, desired Magento mode (developer/production/default) can be enabled using `magento_mode` option, default is developer mode.
+
 ### Connecting to MySQL DB
 
 Answer can be found [here](https://github.com/paliarush/magento2-vagrant-for-developers/issues/8)
@@ -261,6 +264,12 @@ Set `search_engine: "elasticsearch"` in [config.yaml](etc/config.yaml.dist) to u
 
 Use the following commands to switch between search engines without reinstalling Magento: `m-search-engine elasticsearch` or `m-search-engine mysql`.
 
+### Redis for caching
+
+:information_source: Available in Magento v2.0.6 and higher.
+
+Redis is configured as cache backend by default. It is still possible to switch back to filesystem cache by changing `environment_cache_backend` to `filesystem` in [config.yaml](etc/config.yaml.dist).
+
 ### Reset environment
 
 It is possible to reset project environment to default state, which you usually get just after project initialization. The following command will delete vagrant box and vagrant project settings. After that it will initialize project from scratch. Magento 2 code base (`magento2ce` directory) and [etc/config.yaml](etc/config.yaml.dist) and PhpStorm settings will stay untouched, but guest config files (located in [etc/guest](etc/guest)) will be cleared.
@@ -291,7 +300,8 @@ bash init_project.sh -fcp
 
 ### FAQ
 
- 1. Is Windows 10 supported? Yes, but you may face the same issue as described [here](https://github.com/paliarush/magento2-vagrant-for-developers/issues/36)
+ 1. To debug any CLI script in current Vagrant project, set `debug:vagrant_project` option in [config.yaml](etc/config.yaml.dist) to `1`
+ 1. Is Windows 10 supported? Yes, but you may face the same issue as described [here](https://github.com/paliarush/magento2-vagrant-for-developers/issues/36). Also Virtual box may not work on Windows 10 in headless mode, see how to [enable GUI mode](https://www.vagrantup.com/docs/virtualbox/configuration.html)
  1. ![](docs/images/linux-icon.png)![](docs/images/osx-icon.png) On OSX and \*nix hosts NFS will be used by default to sync your project files with guest. On some hosts Vagrant cannot configure NFS properly, in this case it is possible to deploy project without NFS by setting `use_nfs` option in [config.yaml](etc/config.yaml.dist) to `0` <br />
  1. ![](docs/images/windows-icon.png) On Windows hosts you might face `Composer Install Error: ZipArchive::extractTo(): Full extraction path exceed MAXPATHLEN (260)` exception during `composer install`. This can be fixed in 2 ways: decrease path length to the project directory or set `composer_prefer_source` option in [config.yaml](etc/config.yaml.dist) to `1`
  1. Make sure that you used `vagrant-magento` directory as project root in PHP Storm (not `vagrant-magento/magento2ce`)
